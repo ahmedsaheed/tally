@@ -2,59 +2,60 @@ package main
 
 import "strings"
 
-type Lang struct {
+type Language struct {
 	Name string
 	Extensions []string
 	TotalCount int
 }
-// newLang initializes a Lang instance with default counts
-func newLang(name string, extensions []string) Lang {
-	return Lang{
+
+var Languages = map[string]Language{
+	"Go":         newLanguage("Golang", []string{".go"}),
+	"Python":     newLanguage("Python", []string{".py"}),
+	"Ruby":       newLanguage("Ruby", []string{".rb"}),
+	"JavaScript": newLanguage("JavaScript", []string{".js", ".cjs", ".mjs", ".jsx"}),
+	"Java":       newLanguage("Java", []string{".java"}),
+	"C":          newLanguage("C", []string{".c"}),
+	"C++":        newLanguage("C++", []string{".cpp", ".cc"}),
+	"Rust":       newLanguage("Rust", []string{".rs"}),
+	"TypeScript": newLanguage("TypeScript", []string{".ts", ".tsx"}),
+	"Bash":      newLanguage("Bash", []string{".sh"}),
+	"Swift":      newLanguage("Swift", []string{".swift"}),
+	"Kotlin":     newLanguage("Kotlin", []string{".kt"}),
+	"PHP":        newLanguage("PHP", []string{".php"}),
+	"HTML":       newLanguage("HTML", []string{".html"}),
+	"CSS":        newLanguage("CSS", []string{".css", ".scss", ".sass", ".less"}),
+	"SQL":        newLanguage("SQL", []string{".sql"}),
+	"R":          newLanguage("R", []string{".r"}),
+	"Scala":      newLanguage("Scala", []string{".scala"}),
+	"Perl":       newLanguage("Perl", []string{".pl"}),
+	"Lua":        newLanguage("Lua", []string{".lua"}),
+	"Objective-C":newLanguage("Objective-C", []string{".m"}),
+	"Assembly":   newLanguage("Assembly", []string{".asm"}),
+	"Vim script": newLanguage("Vim script", []string{".vim"}),
+	"Groovy":     newLanguage("Groovy", []string{".groovy"}),
+	"Racket":     newLanguage("Racket", []string{".rkt"}),
+	"OCaml":      newLanguage("OCaml", []string{".ml"}),
+	"Julia":      newLanguage("Julia", []string{".jl"}),
+	"Scheme":     newLanguage("Scheme", []string{".scm"}),
+	"Markdown":   newLanguage("Markdown", []string{".md", ".mdx"}),
+	"TeX":        newLanguage("TeX", []string{".tex"}),
+	"JSON":       newLanguage("JSON", []string{".json"}),
+	"YAML":       newLanguage("YAML", []string{".yaml", ".yml"}),
+	"TOML":       newLanguage("TOML", []string{".toml"}),
+	"Fish":       newLanguage("Fish", []string{".fish"}),
+}
+
+// newLanguage initializes a Lang instance with default counts
+func newLanguage(name string, extensions []string) Language {
+	return Language{
 		Name:         name,
 		Extensions:   extensions,
 		TotalCount:   0,
 	}
 }
 
-var langs = map[string]Lang{
-	"Go":         newLang("Golang", []string{".go"}),
-	"Python":     newLang("Python", []string{".py"}),
-	"Ruby":       newLang("Ruby", []string{".rb"}),
-	"JavaScript": newLang("JavaScript", []string{".js", ".cjs", ".mjs", ".jsx"}),
-	"Java":       newLang("Java", []string{".java"}),
-	"C":          newLang("C", []string{".c"}),
-	"C++":        newLang("C++", []string{".cpp", ".cc"}),
-	"Rust":       newLang("Rust", []string{".rs"}),
-	"TypeScript": newLang("TypeScript", []string{".ts", ".tsx"}),
-	"Shell":      newLang("Shell", []string{".sh"}),
-	"Swift":      newLang("Swift", []string{".swift"}),
-	"Kotlin":     newLang("Kotlin", []string{".kt"}),
-	"PHP":        newLang("PHP", []string{".php"}),
-	"HTML":       newLang("HTML", []string{".html"}),
-	"CSS":        newLang("CSS", []string{".css", ".scss", ".sass", ".less"}),
-	"SQL":        newLang("SQL", []string{".sql"}),
-	"R":          newLang("R", []string{".r"}),
-	"Scala":      newLang("Scala", []string{".scala"}),
-	"Perl":       newLang("Perl", []string{".pl"}),
-	"Lua":        newLang("Lua", []string{".lua"}),
-	"Objective-C":newLang("Objective-C", []string{".m"}),
-	"Assembly":   newLang("Assembly", []string{".asm"}),
-	"Vim script": newLang("Vim script", []string{".vim"}),
-	"Groovy":     newLang("Groovy", []string{".groovy"}),
-	"PowerShell": newLang("PowerShell", []string{".ps1"}),
-	"Racket":     newLang("Racket", []string{".rkt"}),
-	"OCaml":      newLang("OCaml", []string{".ml"}),
-	"Julia":      newLang("Julia", []string{".jl"}),
-	"Scheme":     newLang("Scheme", []string{".scm"}),
-	"Markdown":   newLang("Markdown", []string{".md", ".mdx"}),
-	"TeX":        newLang("TeX", []string{".tex"}),
-	"JSON":       newLang("JSON", []string{".json"}),
-	"YAML":       newLang("YAML", []string{".yaml", ".yml"}),
-	"XML":        newLang("XML", []string{".xml"}),
-}
-
-func getLangByExt(ext string) string {
-	for lang, exts := range langs {
+func lookupLangByExtension(ext string) string {
+	for lang, exts := range Languages {
 		for _, e := range exts.Extensions {
 			if e == ext {
 				return lang
@@ -64,20 +65,12 @@ func getLangByExt(ext string) string {
 	return "Unknown"
 }
 
-func IsValidFile(file, ext string) bool {
-
+func IsFileExtensionValid(file, ext string) bool {
 	correctSuffix := strings.HasSuffix(file, ext)
-	for _, e := range langs[getLangByExt(ext)].Extensions {
+	for _, e := range Languages[lookupLangByExtension(ext)].Extensions {
 		if e == ext {
 			return true && correctSuffix
 		}
 	}
-
 	return false
 }
-
-
-func GetLang(ext string) Lang {
-	return langs[getLangByExt(ext)]
-}
-

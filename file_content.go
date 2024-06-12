@@ -1,22 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-var EncounteredLangsArr = []Lang{}
+var EncounteredLangsArr = []Language{}
 
-func SetEncounteredLangs(lang Lang) {
+func SetEncounteredLangs(lang Language) {
 	EncounteredLangsArr = append(EncounteredLangsArr, lang)
 }
 
-func GetEncounteredLangs() []Lang {
+func GetEncounteredLangs() []Language {
 	return EncounteredLangsArr
 }
 
-func isExpectedLang(file string, expectedExt []string) bool {
+func hasExpectedLanguage(file string, expectedExt []string) bool {
 	for _, ext := range expectedExt {
 		if strings.HasSuffix(file, ext) {
 			return true
@@ -25,23 +26,33 @@ func isExpectedLang(file string, expectedExt []string) bool {
 	return false
 }
 
-func CalculateByLangFromRoot(lang Lang, root string) (Lang, error) {
+func CountUp(lang Language, root string) (Language, error) {
 	totalLine := 0
-		err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-			if err != nil { return err }
-			 if isIgnoredDir(path) { return filepath.SkipDir }
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil { return err }
+		// if isIgnoredDir(path) { return filepath.SkipDir }
 
-			if !info.IsDir() && isExpectedLang(path, lang.Extensions) && !isIgnoredFile(path)  && !isIgnoredDir(path) {
-				line, err := countLines(path)
 
-				if err != nil {
-					return err
-				}
 
-				totalLine += line
+
+
+		if !info.IsDir() && hasExpectedLanguage(path, lang.Extensions) && !isIgnoredFile(path)  && !isIgnoredDir(path) {
+			
+			if lang.Extensions[0] == ".py" {
+				fmt.Println("py file found:", path)
 			}
-			lang.TotalCount = totalLine
-			return nil
+
+			line, err := Scan(path)
+
+			if err != nil {
+				return err
+			}
+			
+			totalLine += line
+		}
+			
+		lang.TotalCount = totalLine
+		return nil
 		})
 
 		if err != nil{
