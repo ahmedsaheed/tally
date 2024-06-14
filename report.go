@@ -34,7 +34,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter":
 			return m, tea.Batch(
-				tea.Printf("Let's go to %s!", m.table.SelectedRow()[1]),
+				tea.Printf("Let's go to %s!", m.table.SelectedRow()[0]),
 			)
 		}
 	}
@@ -48,18 +48,26 @@ func (m model) View() string {
 
 func generateTableRowFromLanguageArray(langs []Language) []table.Row {
 	rows := []table.Row{}
-	for idx, lang := range langs {
-		rows = append(rows, table.Row{fmt.Sprintf("%d", idx+1), lang.Name, fmt.Sprintf("%d", lang.FileCount), fmt.Sprintf("%d", lang.TotalCount)})
+	for _, lang := range langs {
+		bulletWithColor := wrapColoriser(generateLanguageColorFromLanguageColorMap(lang))
+		rows = append(rows, table.Row{
+			bulletWithColor.Render(" ● ") + lang.Name,
+			fmt.Sprintf("%d", lang.FileCount),
+			fmt.Sprint(NumberToString(lang.TotalCount, ',')),
+		})
 	}
 	return rows
 }
 
+func wrapColoriser(color string) lipgloss.Style {
+	return lipgloss.NewStyle().Foreground(lipgloss.Color(color))
+}
+
 func BuildTable(languages []Language) {
 	columns := []table.Column{
-		{Title: "Rank", Width: 4},
-		{Title: "Language", Width: 10},
-		{Title: "Files", Width: 5},
-		{Title: "Tally", Width: 10},
+		{Title: "Language", Width: 40},
+		{Title: "files", Width: 5},
+		{Title: "lines", Width: 20},
 	}
 
 	rows := generateTableRowFromLanguageArray(languages)
@@ -67,21 +75,20 @@ func BuildTable(languages []Language) {
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(7),
+		table.WithHeight(6),
 	)
 
 	s := table.DefaultStyles()
 	s.Header = s.Header.
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
+		BorderBottom(true)
+		// Bold(true)
 	s.Selected = s.Selected.
 		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
+		Background(lipgloss.Color("")).
 		Bold(false)
 	t.SetStyles(s)
-
 	m := model{t}
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)

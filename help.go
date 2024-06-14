@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -11,9 +13,11 @@ import (
 func GetAllLanguagesInDir(root string) []Language {
 	alreadyInserted := map[string]bool{}
 	availableLangs := []Language{}
-	
+
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		if !info.IsDir() {
 			ext := fileExtensionFromPath(path)
 			langName := lookupLangByExtension(ext)
@@ -31,7 +35,7 @@ func GetAllLanguagesInDir(root string) []Language {
 	}
 
 	// fmt.Println("available lang are:", availableLangs)
-	
+
 	return availableLangs
 }
 
@@ -92,4 +96,21 @@ func NumberToString(n int, sep rune) string {
 	return string(buf)
 }
 
-func fileExtensionFromPath(path string) string { return "." + strings.TrimPrefix(filepath.Ext(path), ".") }
+func generateLanguageColorFromLanguageColorMap(lang Language) string {
+	if color, ok := LanguageColors[lang.Name]; ok {
+		return color
+	}
+	return generateRandomAnsiColor()
+}
+
+func generateRandomAnsiColor() string {
+	return fmt.Sprintf("%d", 16+randomInt(0, 199))
+}
+
+func randomInt(min, max int) int {
+	return min + rand.Intn(max-min)
+}
+
+func fileExtensionFromPath(path string) string {
+	return "." + strings.TrimPrefix(filepath.Ext(path), ".")
+}
