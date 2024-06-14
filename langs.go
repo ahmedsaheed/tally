@@ -10,7 +10,7 @@ type Language struct {
 }
 
 var Languages = map[string]Language{
-	"Go":          newLanguage("Golang", []string{".go"}),
+	"Go":          newLanguage("Go", []string{".go"}),
 	"Python":      newLanguage("Python", []string{".py"}),
 	"Ruby":        newLanguage("Ruby", []string{".rb"}),
 	"JavaScript":  newLanguage("JavaScript", []string{".js", ".cjs", ".mjs", ".jsx"}),
