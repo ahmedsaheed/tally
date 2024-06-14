@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,22 +27,12 @@ func hasExpectedLanguage(file string, expectedExt []string) bool {
 
 func CountUp(lang Language, root string) (Language, error) {
 	totalLine := 0
+	fileCount := 0
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil { return err }
-		// if isIgnoredDir(path) { return filepath.SkipDir }
-
-
-
-
-
 		if !info.IsDir() && hasExpectedLanguage(path, lang.Extensions) && !isIgnoredFile(path)  && !isIgnoredDir(path) {
-			
-			if lang.Extensions[0] == ".py" {
-				fmt.Println("py file found:", path)
-			}
-
 			line, err := Scan(path)
-
+			fileCount++
 			if err != nil {
 				return err
 			}
@@ -52,6 +41,8 @@ func CountUp(lang Language, root string) (Language, error) {
 		}
 			
 		lang.TotalCount = totalLine
+		lang.FileCount = fileCount
+
 		return nil
 		})
 

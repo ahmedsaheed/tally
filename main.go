@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 )
 func main() {
 	if len(os.Args) < 2 {
@@ -18,16 +17,6 @@ func main() {
 		return
 	}
 
-	sortByTotalLines(talliedDir)	
-	fmt.Println(strings.Repeat("-", 30))
-	fmt.Printf("%-20s %s\n", "Language", "Total Lines")
-	fmt.Println(strings.Repeat("-", 30))
-	for _, lang := range talliedDir {
-		fmt.Printf("%-20s %d\n", lang.Name, lang.TotalCount)
-	}
-	fmt.Println(strings.Repeat("-", 30))
-	fmt.Printf("%-20s %d\n", "Total", SumLines(talliedDir))
-	fmt.Println(strings.Repeat("-", 30))
-	
+	BuildTable(talliedDir)
 }
 

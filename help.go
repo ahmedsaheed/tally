@@ -3,7 +3,9 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 func GetAllLanguagesInDir(root string) []Language {
@@ -33,7 +35,7 @@ func GetAllLanguagesInDir(root string) []Language {
 	return availableLangs
 }
 
-func sortByTotalLines(langs []Language) {
+func sortByTotalLines(langs []Language) []Language {
 	for i := 0; i < len(langs); i++ {
 		for j := i + 1; j < len(langs); j++ {
 			if langs[i].TotalCount < langs[j].TotalCount {
@@ -41,6 +43,7 @@ func sortByTotalLines(langs []Language) {
 			}
 		}
 	}
+	return langs
 }
 
 func SumLines(langs []Language) int {
@@ -49,6 +52,44 @@ func SumLines(langs []Language) int {
 		total += lang.TotalCount
 	}
 	return total
+}
+
+func NumberToString(n int, sep rune) string {
+
+	s := strconv.Itoa(n)
+
+	startOffset := 0
+	if n < 0 {
+		startOffset = 1
+	}
+
+	const groupLen = 3
+	groups := (len(s) - startOffset - 1) / groupLen
+
+	if groups == 0 {
+		return s
+	}
+
+	sepLen := utf8.RuneLen(sep)
+	sepBytes := make([]byte, sepLen)
+	_ = utf8.EncodeRune(sepBytes, sep)
+
+	buf := make([]byte, groups*(groupLen+sepLen)+len(s)-(groups*groupLen))
+
+	startOffset += groupLen
+	p := len(s)
+	q := len(buf)
+	for p > startOffset {
+		p -= groupLen
+		q -= groupLen
+		copy(buf[q:q+groupLen], s[p:])
+		q -= sepLen
+		copy(buf[q:], sepBytes)
+	}
+	if q > 0 {
+		copy(buf[:q], s)
+	}
+	return string(buf)
 }
 
 func fileExtensionFromPath(path string) string { return "." + strings.TrimPrefix(filepath.Ext(path), ".") }

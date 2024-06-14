@@ -39,6 +39,5 @@ func TallyDirectory(root string) ([]Language, error) {
 			SetEncounteredLangs(lang)
 		}
 	}
-	return GetEncounteredLangs(), nil
+	return sortByTotalLines(GetEncounteredLangs()), nil
 }
-

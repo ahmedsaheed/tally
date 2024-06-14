@@ -6,6 +6,7 @@ type Language struct {
 	Name string
 	Extensions []string
 	TotalCount int
+	FileCount int
 }
 
 var Languages = map[string]Language{
@@ -30,6 +31,7 @@ var Languages = map[string]Language{
 	"Perl":       newLanguage("Perl", []string{".pl"}),
 	"Lua":        newLanguage("Lua", []string{".lua"}),
 	"Objective-C":newLanguage("Objective-C", []string{".m"}),
+	"Dockefile":  newLanguage("Dockerfile", []string{"Dockerfile"}),
 	"Assembly":   newLanguage("Assembly", []string{".asm"}),
 	"Vim script": newLanguage("Vim script", []string{".vim"}),
 	"Groovy":     newLanguage("Groovy", []string{".groovy"}),
