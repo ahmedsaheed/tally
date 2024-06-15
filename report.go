@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -48,19 +49,23 @@ func (m model) View() string {
 
 func generateTableRowFromLanguageArray(langs []Language) []table.Row {
 	rows := []table.Row{}
+	rowStyle := lipgloss.NewStyle()
 	for _, lang := range langs {
 		bulletWithColor := wrapColoriser(generateLanguageColorFromLanguageColorMap(lang))
 		rows = append(rows, table.Row{
-			bulletWithColor.Render(" ● ") + lang.Name,
-			fmt.Sprintf("%d", lang.FileCount),
-			fmt.Sprint(NumberToString(lang.TotalCount, ',')),
+			rowStyle.Align(lipgloss.Left).Inline(true).Render(bulletWithColor.Render() + lang.Name),
+			rowStyle.Align(lipgloss.Right).Inline(true).Render(strconv.Itoa(lang.FileCount)),
+			rowStyle.Align(lipgloss.Right).Inline(true).Render(NumberToString(lang.TotalCount, ',')),
 		})
 	}
 	return rows
 }
 
 func wrapColoriser(color string) lipgloss.Style {
-	return lipgloss.NewStyle().Foreground(lipgloss.Color(color))
+	bullet := "● "
+	// diffBullets := "• ● ○ ◌ ◍ ◎ ◉ ○ ◌ ◍ ◎ ◉"
+	return lipgloss.NewStyle().Background(lipgloss.NoColor{}).
+		Inline(true).SetString(bullet).Foreground(lipgloss.Color(color))
 }
 
 func BuildTable(languages []Language) {
@@ -71,22 +76,22 @@ func BuildTable(languages []Language) {
 	}
 
 	rows := generateTableRowFromLanguageArray(languages)
+
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
 		table.WithHeight(6),
 	)
-
 	s := table.DefaultStyles()
 	s.Header = s.Header.
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true)
-		// Bold(true)
+		BorderBottom(true).
+		Bold(true)
 	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("")).
+		Background(lipgloss.Color("236")).
+		Foreground(lipgloss.Color("#f1e05")).
 		Bold(false)
 	t.SetStyles(s)
 	m := model{t}

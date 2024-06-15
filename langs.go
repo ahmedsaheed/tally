@@ -248,7 +248,7 @@ var LanguageColors = map[string]string{
 	"xBase":                 "#403a40",
 	"XC":                    "#99DA07",
 	"XQuery":                "#5232e7",
-	"YAML":                  "cb171e",
+	"YAML":                  "#cb171e",
 	"Zephir":                "#118f9e",
 }
 
