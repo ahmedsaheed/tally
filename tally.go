@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -15,6 +17,16 @@ func Tally(args []string) {
 	}
 
 	root := resolveRootDirectoryFromArgs(args)
+	if argsLength == 3 && args[2] == "--remote" {
+		locs, err := TallyRemoteRepo(args[1])
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		langs := generateLangArrayFromLocByLangs(locs)
+		MinimalDisplay(sortByTotalLines(langs), *NewOption())
+		return
+	}
 	if !isPathOk(root) {
 		return
 	}
@@ -22,14 +34,14 @@ func Tally(args []string) {
 	if argsLength == 3 && args[2] == "--blame" || argsLength == 2 && args[1] == "--blame" {
 		option.blame = true
 	}
-	talliedDir, err := TallyDirectory(root)
+
+	languages, err := TallyDirectory(root)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 
-	MinimalDisplay(talliedDir, option)
-	// BuildTable(talliedDir)
+	MinimalDisplay(languages, option)
 
 }
 
@@ -56,6 +68,39 @@ func Scan(path string) (int, error) {
 	}
 
 	return lineCount, nil
+}
+
+type Node struct {
+	LOC        int            `json:"loc"`
+	LOCByLangs map[string]int `json:"locByLangs"`
+	Children   map[string]any `json:"children"`
+}
+
+func TallyRemoteRepo(repoPath string) (map[string]int, error) {
+	uri := "https://ghloc.ifels.dev/" + repoPath + "/main?pretty=false"
+	resp, err := http.Get(uri)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var root Node
+	json.NewDecoder(resp.Body).Decode(&root)
+
+	return root.LOCByLangs, nil
+}
+
+func generateLangArrayFromLocByLangs(locByLangs map[string]int) []Language {
+	langs := []Language{}
+	for ext, loc := range locByLangs {
+		if lang, ok := Languages[lookupLangByExtension(ext)]; ok {
+			lang.TotalCount = loc
+			langs = append(langs, lang)
+		}
+
+	}
+	return langs
+
 }
 
 func countUp(lang Language, root string) (Language, error) {
