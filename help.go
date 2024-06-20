@@ -34,8 +34,6 @@ func GetAllLanguagesInDir(root string) []Language {
 		return nil
 	}
 
-	// fmt.Println("available lang are:", availableLangs)
-
 	return availableLangs
 }
 
@@ -113,4 +111,52 @@ func randomInt(min, max int) int {
 
 func fileExtensionFromPath(path string) string {
 	return "." + strings.TrimPrefix(filepath.Ext(path), ".")
+}
+
+func isPathOk(path string) bool {
+	stat, err := os.Stat(path)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	if !stat.IsDir() {
+		fmt.Printf("Error %s is not a directory\n", stat.Name())
+		return false
+	}
+	return true
+}
+
+func getWD() string {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return ""
+	}
+	return currentDir
+}
+
+func resolveRootDirectoryFromArgs(args []string) string {
+	if len(args) == 1 {
+		return getWD()
+	}
+	return args[1]
+}
+
+func Tally(args []string) {
+	argsLength := len(args)
+	if argsLength == 1 || argsLength == 2 {
+		ROOT := resolveRootDirectoryFromArgs(args)
+		if !isPathOk(ROOT) {
+			return
+		}
+		talliedDir, err := TallyDirectory(ROOT)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		BuildTable(talliedDir)
+	} else {
+		fmt.Println("Usage: tally <directory>")
+		return
+	}
 }
