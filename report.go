@@ -51,7 +51,7 @@ func generateTableRowFromLanguageArray(langs []Language) []table.Row {
 	rows := []table.Row{}
 	rowStyle := lipgloss.NewStyle()
 	for _, lang := range langs {
-		bulletWithColor := wrapColoriser(generateLanguageColorFromLanguageColorMap(lang))
+		bulletWithColor := coloriser(generateLanguageColorFromLanguageColorMap(lang))
 		rows = append(rows, table.Row{
 			rowStyle.Align(lipgloss.Left).Inline(true).Render(bulletWithColor.Render() + lang.Name),
 			rowStyle.Align(lipgloss.Right).Inline(true).Render(strconv.Itoa(lang.FileCount)),
@@ -61,11 +61,11 @@ func generateTableRowFromLanguageArray(langs []Language) []table.Row {
 	return rows
 }
 
-func wrapColoriser(color string) lipgloss.Style {
+func coloriser(color string) lipgloss.Style {
 	bullet := "● "
 	// diffBullets := "• ● ○ ◌ ◍ ◎ ◉ ○ ◌ ◍ ◎ ◉"
 	return lipgloss.NewStyle().Background(lipgloss.NoColor{}).
-		Inline(true).SetString(bullet).Foreground(lipgloss.Color(color))
+		Inline(true).SetString(bullet)
 }
 
 func BuildTable(languages []Language) {
@@ -90,7 +90,7 @@ func BuildTable(languages []Language) {
 		BorderBottom(true).
 		Bold(true)
 	s.Selected = s.Selected.
-		Background(lipgloss.Color("236")).
+		Background(lipgloss.Color("12")).
 		Foreground(lipgloss.Color("#f1e05")).
 		Bold(false)
 	t.SetStyles(s)

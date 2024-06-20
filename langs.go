@@ -9,6 +9,36 @@ type Language struct {
 	FileCount  int
 }
 
+func newLanguage(name string, extensions []string) Language {
+	return Language{
+		Name:       name,
+		Extensions: extensions,
+		TotalCount: 0,
+		FileCount:  0,
+	}
+}
+
+func lookupLangByExtension(ext string) string {
+	for lang, exts := range Languages {
+		for _, e := range exts.Extensions {
+			if e == ext {
+				return lang
+			}
+		}
+	}
+	return "Unknown"
+}
+
+func IsFileExtensionValid(file, ext string) bool {
+	correctSuffix := strings.HasSuffix(file, ext)
+	for _, e := range Languages[lookupLangByExtension(ext)].Extensions {
+		if e == ext {
+			return true && correctSuffix
+		}
+	}
+	return false
+}
+
 var Languages = map[string]Language{
 	"Go":          newLanguage("Go", []string{".go"}),
 	"Python":      newLanguage("Python", []string{".py"}),
@@ -250,34 +280,4 @@ var LanguageColors = map[string]string{
 	"XQuery":                "#5232e7",
 	"YAML":                  "#cb171e",
 	"Zephir":                "#118f9e",
-}
-
-// newLanguage initializes a Lang instance with default counts
-func newLanguage(name string, extensions []string) Language {
-	return Language{
-		Name:       name,
-		Extensions: extensions,
-		TotalCount: 0,
-	}
-}
-
-func lookupLangByExtension(ext string) string {
-	for lang, exts := range Languages {
-		for _, e := range exts.Extensions {
-			if e == ext {
-				return lang
-			}
-		}
-	}
-	return "Unknown"
-}
-
-func IsFileExtensionValid(file, ext string) bool {
-	correctSuffix := strings.HasSuffix(file, ext)
-	for _, e := range Languages[lookupLangByExtension(ext)].Extensions {
-		if e == ext {
-			return true && correctSuffix
-		}
-	}
-	return false
 }
