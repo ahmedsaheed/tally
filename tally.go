@@ -19,7 +19,8 @@ func Tally(args []string) {
 			fmt.Println("Error:", err)
 			return
 		}
-		BuildTable(talliedDir)
+		MinimalDisplay(talliedDir)
+		// BuildTable(talliedDir)
 	} else {
 		fmt.Println("Usage: tally <directory>")
 		return

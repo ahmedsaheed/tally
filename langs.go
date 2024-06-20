@@ -39,6 +39,13 @@ func IsFileExtensionValid(file, ext string) bool {
 	return false
 }
 
+func (lang Language) getColor() string {
+	if color, ok := LanguageColors[lang.Name]; ok {
+		return color
+	}
+	return generateRandomAnsiColor()
+}
+
 var Languages = map[string]Language{
 	"Go":          newLanguage("Go", []string{".go"}),
 	"Python":      newLanguage("Python", []string{".py"}),

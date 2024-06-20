@@ -94,13 +94,6 @@ func NumberToString(n int, sep rune) string {
 	return string(buf)
 }
 
-func generateLanguageColorFromLanguageColorMap(lang Language) string {
-	if color, ok := LanguageColors[lang.Name]; ok {
-		return color
-	}
-	return generateRandomAnsiColor()
-}
-
 func generateRandomAnsiColor() string {
 	return fmt.Sprintf("%d", 16+randomInt(0, 199))
 }

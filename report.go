@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/gookit/color"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var baseStyle = lipgloss.NewStyle().
@@ -51,7 +54,7 @@ func generateTableRowFromLanguageArray(langs []Language) []table.Row {
 	rows := []table.Row{}
 	rowStyle := lipgloss.NewStyle()
 	for _, lang := range langs {
-		bulletWithColor := coloriser(generateLanguageColorFromLanguageColorMap(lang))
+		bulletWithColor := coloriser(lang.getColor())
 		rows = append(rows, table.Row{
 			rowStyle.Align(lipgloss.Left).Inline(true).Render(bulletWithColor.Render() + lang.Name),
 			rowStyle.Align(lipgloss.Right).Inline(true).Render(strconv.Itoa(lang.FileCount)),
@@ -62,10 +65,14 @@ func generateTableRowFromLanguageArray(langs []Language) []table.Row {
 }
 
 func coloriser(color string) lipgloss.Style {
-	bullet := "● "
-	// diffBullets := "• ● ○ ◌ ◍ ◎ ◉ ○ ◌ ◍ ◎ ◉"
+	bullet := "● " //• ● ○ ◌ ◍ ◎ ◉ ○ ◌ ◍ ◎ ◉ ● ●
 	return lipgloss.NewStyle().Background(lipgloss.NoColor{}).
-		Inline(true).SetString(bullet)
+		Inline(true).SetString(bullet).Foreground(lipgloss.Color(color))
+}
+
+func minimalColorise(langColor string) color.RGBColor {
+	return color.HEX(langColor)
+
 }
 
 func BuildTable(languages []Language) {
@@ -90,7 +97,7 @@ func BuildTable(languages []Language) {
 		BorderBottom(true).
 		Bold(true)
 	s.Selected = s.Selected.
-		Background(lipgloss.Color("12")).
+		// Background(lipgloss.Color("12")).
 		Foreground(lipgloss.Color("#f1e05")).
 		Bold(false)
 	t.SetStyles(s)
@@ -99,4 +106,59 @@ func BuildTable(languages []Language) {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+}
+
+func generateBar(summaries []Language, width int) {
+	innerWidth := width
+	totalLines := 0
+	totalLines = SumLines(summaries)
+
+	if totalLines == 0 {
+		fmt.Fprintf(os.Stderr, " no code found in %s\n", "/path/to/dir")
+		return
+	}
+
+	// fmt.Println()
+	filled := 0
+
+	for _, summary := range summaries {
+		percent := (summary.TotalCount * innerWidth) / totalLines
+		if percent == 0 {
+			continue
+		}
+
+		if filled == 0 {
+			fmt.Println()
+			fmt.Print(" ")
+		}
+		filled += percent
+
+		if strings.HasPrefix(summary.getColor(), "#") {
+			col := color.HEX(summary.getColor(), true)
+			col.Print(strings.Repeat(" ", percent))
+		}
+	}
+
+	if filled != 0 {
+		fmt.Print(strings.Repeat(" ", innerWidth-filled))
+		fmt.Println()
+		fmt.Println()
+	}
+}
+
+func MinimalDisplay(langs []Language) {
+	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		fmt.Println("Error getting terminal size:", err)
+		width = 80
+	}
+
+	fmt.Println()
+	for _, lang := range langs {
+		space := width - (len(lang.Name) + 4) - len(fmt.Sprintf("%d", lang.TotalCount))
+		inlay := color.HEX("#a1a1a1").Sprint(strings.Repeat(".", space-2))
+		fmt.Printf(
+			" %s %s%s %d\n", minimalColorise(lang.getColor()).Sprint("●"), lang.Name, inlay, lang.TotalCount)
+	}
+	generateBar(langs, width)
 }
