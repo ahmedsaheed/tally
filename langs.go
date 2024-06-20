@@ -1,10 +1,14 @@
 package main
 
-import "strings"
+import (
+	"os"
+	"strings"
+)
 
 type Language struct {
 	Name       string
 	Extensions []string
+	Files      []os.FileInfo
 	TotalCount int
 	FileCount  int
 }
@@ -13,6 +17,7 @@ func newLanguage(name string, extensions []string) Language {
 	return Language{
 		Name:       name,
 		Extensions: extensions,
+		Files:      []os.FileInfo{},
 		TotalCount: 0,
 		FileCount:  0,
 	}

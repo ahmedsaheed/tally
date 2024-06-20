@@ -129,7 +129,7 @@ func getWD() string {
 }
 
 func resolveRootDirectoryFromArgs(args []string) string {
-	if len(args) == 1 {
+	if len(args) == 1 || args[1] == "--blame" {
 		return getWD()
 	}
 	return args[1]

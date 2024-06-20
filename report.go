@@ -118,7 +118,6 @@ func generateBar(summaries []Language, width int) {
 		return
 	}
 
-	// fmt.Println()
 	filled := 0
 
 	for _, summary := range summaries {
@@ -146,10 +145,9 @@ func generateBar(summaries []Language, width int) {
 	}
 }
 
-func MinimalDisplay(langs []Language) {
+func MinimalDisplay(langs []Language, opts Option) {
 	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
-		fmt.Println("Error getting terminal size:", err)
 		width = 80
 	}
 
@@ -157,8 +155,22 @@ func MinimalDisplay(langs []Language) {
 	for _, lang := range langs {
 		space := width - (len(lang.Name) + 4) - len(fmt.Sprintf("%d", lang.TotalCount))
 		inlay := color.HEX("#a1a1a1").Sprint(strings.Repeat(".", space-2))
-		fmt.Printf(
-			" %s %s%s %d\n", minimalColorise(lang.getColor()).Sprint("●"), lang.Name, inlay, lang.TotalCount)
+		format := map[bool]string{true: " %s %s%s %d", false: " %s %s%s %d\n"}[opts.blame]
+		fmt.Printf(format, minimalColorise(lang.getColor()).Sprint("●"), lang.Name, inlay, lang.TotalCount)
+		if opts.blame {
+			for i, file := range lang.Files {
+				graphChar := "└"
+				if i < len(lang.Files)-1 {
+					graphChar = "├"
+				}
+				fmt.Printf("\n %s %s", graphChar, file.Name())
+				if i == len(lang.Files)-1 {
+					fmt.Println()
+				}
+
+			}
+
+		}
 	}
 	generateBar(langs, width)
 }

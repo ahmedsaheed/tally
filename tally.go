@@ -9,22 +9,28 @@ import (
 
 func Tally(args []string) {
 	argsLength := len(args)
-	if argsLength == 1 || argsLength == 2 {
-		ROOT := resolveRootDirectoryFromArgs(args)
-		if !isPathOk(ROOT) {
-			return
-		}
-		talliedDir, err := TallyDirectory(ROOT)
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
-		MinimalDisplay(talliedDir)
-		// BuildTable(talliedDir)
-	} else {
-		fmt.Println("Usage: tally <directory>")
+	if argsLength < 1 || argsLength > 3 {
+		fmt.Println("Usage: tally <directory> [--blame]")
 		return
 	}
+
+	root := resolveRootDirectoryFromArgs(args)
+	if !isPathOk(root) {
+		return
+	}
+	var option Option = *NewOption()
+	if argsLength == 3 && args[2] == "--blame" || argsLength == 2 && args[1] == "--blame" {
+		option.blame = true
+	}
+	talliedDir, err := TallyDirectory(root)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	MinimalDisplay(talliedDir, option)
+	// BuildTable(talliedDir)
+
 }
 
 func Scan(path string) (int, error) {
@@ -55,6 +61,7 @@ func Scan(path string) (int, error) {
 func countUp(lang Language, root string) (Language, error) {
 	totalLine := 0
 	fileCount := 0
+	filesInfo := []os.FileInfo{}
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -62,6 +69,7 @@ func countUp(lang Language, root string) (Language, error) {
 		if !info.IsDir() && hasExpectedLanguage(path, lang.Extensions) && !isIgnoredFile(path) && !isIgnoredDir(path) && !isDotedDir(path) {
 			line, err := Scan(path)
 			fileCount++
+			filesInfo = append(filesInfo, info)
 			if err != nil {
 				return err
 			}
@@ -71,6 +79,7 @@ func countUp(lang Language, root string) (Language, error) {
 
 		lang.TotalCount = totalLine
 		lang.FileCount = fileCount
+		lang.Files = filesInfo
 
 		return nil
 	})
