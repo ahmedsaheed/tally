@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -23,35 +21,6 @@ func hasExpectedLanguage(file string, expectedExt []string) bool {
 		}
 	}
 	return false
-}
-
-func CountUp(lang Language, root string) (Language, error) {
-	totalLine := 0
-	fileCount := 0
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() && hasExpectedLanguage(path, lang.Extensions) && !isIgnoredFile(path) && !isIgnoredDir(path) && !isDotedDir(path) {
-			line, err := Scan(path)
-			fileCount++
-			if err != nil {
-				return err
-			}
-
-			totalLine += line
-		}
-
-		lang.TotalCount = totalLine
-		lang.FileCount = fileCount
-
-		return nil
-	})
-
-	if err != nil {
-		return lang, err
-	}
-	return lang, nil
 }
 
 var ignoredDirs = []string{".git", ".idea", "node_modules", "vendor"}

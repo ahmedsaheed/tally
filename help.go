@@ -141,22 +141,3 @@ func resolveRootDirectoryFromArgs(args []string) string {
 	}
 	return args[1]
 }
-
-func Tally(args []string) {
-	argsLength := len(args)
-	if argsLength == 1 || argsLength == 2 {
-		ROOT := resolveRootDirectoryFromArgs(args)
-		if !isPathOk(ROOT) {
-			return
-		}
-		talliedDir, err := TallyDirectory(ROOT)
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
-		BuildTable(talliedDir)
-	} else {
-		fmt.Println("Usage: tally <directory>")
-		return
-	}
-}
