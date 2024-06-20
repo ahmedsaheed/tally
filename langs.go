@@ -72,6 +72,7 @@ var Languages = map[string]Language{
 	"Scala":       newLanguage("Scala", []string{".scala"}),
 	"Perl":        newLanguage("Perl", []string{".pl"}),
 	"Lua":         newLanguage("Lua", []string{".lua"}),
+	"Dart":        newLanguage("Dart", []string{".dart"}),
 	"Objective-C": newLanguage("Objective-C", []string{".m"}),
 	"Dockefile":   newLanguage("Dockerfile", []string{"Dockerfile"}),
 	"Assembly":    newLanguage("Assembly", []string{".asm"}),
