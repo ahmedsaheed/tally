@@ -1,0 +1,8 @@
+tally [directory | repository] [options]
+
+  -h, --help 
+      show this message
+  -r, --remote [repository]
+      tally a public repository
+  -b, --blame
+      list all of the files for each language

@@ -2,47 +2,84 @@ package main
 
 import (
 	"bufio"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/gookit/color"
 )
 
+//go:embed help.txt
+var helpText string
+
 func Tally(args []string) {
-	argsLength := len(args)
-	if argsLength < 1 || argsLength > 3 {
-		fmt.Println("Usage: tally <directory> [--blame]")
-		return
-	}
-
-	root := resolveRootDirectoryFromArgs(args)
-	if argsLength == 3 && args[2] == "--remote" {
-		locs, err := TallyRemoteRepo(args[1])
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
-		langs := generateLangArrayFromLocByLangs(locs)
-		MinimalDisplay(sortByTotalLines(langs), *NewOption())
-		return
-	}
-	if !isPathOk(root) {
-		return
-	}
-	var option Option = *NewOption()
-	if argsLength == 3 && args[2] == "--blame" || argsLength == 2 && args[1] == "--blame" {
-		option.blame = true
-	}
-
-	languages, err := TallyDirectory(root)
+	root, option, err := parseArgs(args)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 
-	MinimalDisplay(languages, option)
+	if option.showHelp {
+		fmt.Println(color.HEX("#00FFFF", false).Sprint("Tally 0.0.1"))
+		fmt.Println(helpText)
+		return
+	}
 
+	if option.remote {
+		processRemoteRepo(root, option)
+	} else {
+		processLocalDirectory(root, option)
+	}
+}
+
+func parseArgs(args []string) (string, Option, error) {
+	argsLength := len(args)
+	if argsLength < 1 || argsLength > 3 {
+		return "", Option{}, fmt.Errorf("usage: tally <directory|repo> [--blame | --remote]")
+	}
+	root, option := resolveRootDirectoryFromArgs(args), *NewOption()
+
+	if argsLength == 2 && args[1] == "--help" || argsLength == 3 && args[2] == "--help" {
+		option.showHelp = true
+		return "", option, nil
+	}
+
+	if argsLength == 3 && args[2] == "--remote" {
+		option.remote = true
+		return args[1], option, nil
+	}
+	if !isPathOk(root) {
+		return "", Option{}, fmt.Errorf("error: invalid path")
+	}
+	if argsLength == 3 && args[2] == "--blame" || argsLength == 2 && args[1] == "--blame" {
+		option.blame = true
+	}
+	return root, option, nil
+}
+
+func processLocalDirectory(root string, option Option) {
+	if !isPathOk(root) {
+		return
+	}
+	languages, err := TallyDirectory(root)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	MinimalDisplay(languages, option)
+}
+
+func processRemoteRepo(root string, option Option) {
+	loc, err := TallyRemoteRepo(root)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	languages := generateLangArrayFromLocByLangs(loc)
+	MinimalDisplay(languages, option)
 }
 
 func Scan(path string) (int, error) {
@@ -70,24 +107,31 @@ func Scan(path string) (int, error) {
 	return lineCount, nil
 }
 
-type Node struct {
+type RemoteResponse struct {
 	LOC        int            `json:"loc"`
 	LOCByLangs map[string]int `json:"locByLangs"`
 	Children   map[string]any `json:"children"`
 }
 
 func TallyRemoteRepo(repoPath string) (map[string]int, error) {
-	uri := "https://ghloc.ifels.dev/" + repoPath + "/main?pretty=false"
-	resp, err := http.Get(uri)
+	url := "https://ghloc.ifels.dev/" + repoPath + "?match=!package-lock.json&pretty=false"
+	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return nil, err
 	}
-	defer resp.Body.Close()
-	var root Node
-	json.NewDecoder(resp.Body).Decode(&root)
 
-	return root.LOCByLangs, nil
+	defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		var data RemoteResponse
+		json.NewDecoder(resp.Body).Decode(&data)
+		return data.LOCByLangs, nil
+	}
+	reason := map[bool]string{
+		true:  "repository is either private or does not exist.",
+		false: "unknown error occurred.",
+	}[resp.StatusCode == 404 || resp.StatusCode == 400]
+	return nil, fmt.Errorf("%s - %s", resp.Status, reason)
 }
 
 func generateLangArrayFromLocByLangs(locByLangs map[string]int) []Language {
@@ -99,7 +143,7 @@ func generateLangArrayFromLocByLangs(locByLangs map[string]int) []Language {
 		}
 
 	}
-	return langs
+	return sortByTotalLines(langs)
 
 }
 
