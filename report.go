@@ -60,7 +60,7 @@ func MinimalDisplay(langs []Language, opts Option) {
 	for _, lang := range langs {
 		space := width - (len(lang.Name) + 4) - len(fmt.Sprintf("%d", lang.TotalCount))
 		inlay := color.HEX("#a1a1a1").Sprint(strings.Repeat(".", space-2))
-		format := map[bool]string{true: " %s %s%s %d", false: " %s %s%s %d\n"}[opts.blame]
+		format := map[bool]string{true: " %s %s%s %d", false: " %s  %s%s %d\n"}[opts.blame]
 		fmt.Printf(format, minimalColorise(lang.getColor()).Sprint("●"), lang.Name, inlay, lang.TotalCount)
 		if opts.blame {
 			for i, file := range lang.Files {
