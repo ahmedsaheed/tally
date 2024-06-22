@@ -61,6 +61,8 @@ var Languages = map[string]Language{
 	"C++":         newLanguage("C++", []string{".cpp", ".cc"}),
 	"Rust":        newLanguage("Rust", []string{".rs"}),
 	"TypeScript":  newLanguage("TypeScript", []string{".ts", ".tsx"}),
+	"ErLang":      newLanguage("ErLang", []string{".erl"}),
+	"Gleam":       newLanguage("Gleam", []string{".gleam"}),
 	"Bash":        newLanguage("Bash", []string{".sh"}),
 	"Swift":       newLanguage("Swift", []string{".swift"}),
 	"Kotlin":      newLanguage("Kotlin", []string{".kt"}),
@@ -74,7 +76,7 @@ var Languages = map[string]Language{
 	"Lua":         newLanguage("Lua", []string{".lua"}),
 	"Dart":        newLanguage("Dart", []string{".dart"}),
 	"Objective-C": newLanguage("Objective-C", []string{".m"}),
-	"Dockefile":   newLanguage("Dockerfile", []string{"Dockerfile"}),
+	"Dockerfile":  newLanguage("Dockerfile", []string{"Dockerfile"}),
 	"Assembly":    newLanguage("Assembly", []string{".asm"}),
 	"Vim script":  newLanguage("Vim script", []string{".vim"}),
 	"Groovy":      newLanguage("Groovy", []string{".groovy"}),
@@ -88,6 +90,9 @@ var Languages = map[string]Language{
 	"YAML":        newLanguage("YAML", []string{".yaml", ".yml"}),
 	"TOML":        newLanguage("TOML", []string{".toml"}),
 	"Fish":        newLanguage("Fish", []string{".fish"}),
+	"PowerShell":  newLanguage("PowerShell", []string{".ps1"}),
+	"Makefile":    newLanguage("Makefile", []string{"Makefile"}),
+	"XML":         newLanguage("XML", []string{".xml"}),
 }
 
 var LanguageColors = map[string]string{
@@ -156,6 +161,7 @@ var LanguageColors = map[string]string{
 	"FreeMarker":            "#0050b2",
 	"Frege":                 "#00cafe",
 	"Game Maker Language":   "#8fb200",
+	"Gleam":                 "#ffaff3",
 	"Glyph":                 "#e4cc98",
 	"Gnuplot":               "#f0a9f0",
 	"Go":                    "#375eab",
