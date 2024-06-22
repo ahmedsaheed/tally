@@ -14,7 +14,7 @@ func GetEncounteredLangs() []Language {
 
 func hasExpectedLanguage(file string, expectedExt []string) bool {
 	for _, ext := range expectedExt {
-		if strings.HasSuffix(file, ext) {
+		if strings.HasSuffix(file, ext) || isDockerfile(file) {
 			return true
 		}
 	}

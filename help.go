@@ -22,6 +22,10 @@ func GetAllLanguagesInDir(root string) []Language {
 			ext := fileExtensionFromPath(path)
 			langName := lookupLangByExtension(ext)
 			lang := Languages[langName]
+			if isDockerfile(path) && ext == "." {
+				langName = "Dockerfile"
+				lang = Languages[langName]
+			}
 			if len(lang.Name) != 0 && !alreadyInserted[lang.Name] {
 				availableLangs = append(availableLangs, lang)
 				alreadyInserted[lang.Name] = true
@@ -101,6 +105,8 @@ func generateRandomAnsiColor() string {
 func randomInt(min, max int) int {
 	return min + rand.Intn(max-min)
 }
+
+func isDockerfile(file string) bool { return strings.HasSuffix(file, "Dockerfile") }
 
 func fileExtensionFromPath(path string) string {
 	return "." + strings.TrimPrefix(filepath.Ext(path), ".")
