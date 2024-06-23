@@ -23,7 +23,7 @@ func Tally(args []string) {
 	}
 
 	if option.showHelp {
-		fmt.Println(color.HEX("#00FFFF", false).Sprint("Tally 0.0.1"))
+		fmt.Println(color.HEX("#00FFFF", false).Sprint("Tally 0.1.0"))
 		fmt.Println(helpText)
 		return
 	}
