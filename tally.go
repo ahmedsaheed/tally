@@ -72,8 +72,8 @@ func processLocalDirectory(root string, option Option) {
 	MinimalDisplay(languages, option)
 }
 
-func processRemoteRepo(root string, option Option) {
-	loc, err := TallyRemoteRepo(root)
+func processRemoteRepo(repoName string, option Option) {
+	loc, err := TallyRemoteRepo(repoName)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -113,8 +113,8 @@ type RemoteResponse struct {
 	Children   map[string]any `json:"children"`
 }
 
-func TallyRemoteRepo(repoPath string) (map[string]int, error) {
-	url := "https://ghloc.ifels.dev/" + repoPath + "?match=!package-lock.json&pretty=false"
+func TallyRemoteRepo(repoName string) (map[string]int, error) {
+	url := "https://ghloc.ifels.dev/" + repoName + "?match=!package-lock.json&pretty=false"
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("Error:", err)
