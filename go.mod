@@ -1,4 +1,4 @@
-module tally
+module github.com/ahmedsaheed/tally 
 
 go 1.22.1
 
