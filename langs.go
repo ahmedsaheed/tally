@@ -61,7 +61,7 @@ var Languages = map[string]Language{
 	"C++":         newLanguage("C++", []string{".cpp", ".cc"}),
 	"Rust":        newLanguage("Rust", []string{".rs"}),
 	"TypeScript":  newLanguage("TypeScript", []string{".ts", ".tsx"}),
-	"ErLang":      newLanguage("ErLang", []string{".erl"}),
+	"Erlang":      newLanguage("Erlang", []string{".erl"}),
 	"Gleam":       newLanguage("Gleam", []string{".gleam"}),
 	"Bash":        newLanguage("Bash", []string{".sh"}),
 	"Swift":       newLanguage("Swift", []string{".swift"}),

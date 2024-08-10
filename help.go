@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -42,13 +43,9 @@ func GetAllLanguagesInDir(root string) []Language {
 }
 
 func sortByTotalLines(langs []Language) []Language {
-	for i := 0; i < len(langs); i++ {
-		for j := i + 1; j < len(langs); j++ {
-			if langs[i].TotalCount < langs[j].TotalCount {
-				langs[i], langs[j] = langs[j], langs[i]
-			}
-		}
-	}
+	sort.Slice(langs, func(i, j int) bool {
+		return langs[i].TotalCount > langs[j].TotalCount
+	})
 	return langs
 }
 
