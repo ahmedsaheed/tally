@@ -4,6 +4,7 @@ type Option struct {
 	blame    bool
 	remote   bool
 	showHelp bool
+	html     bool
 }
 
 func NewOption() *Option {
@@ -11,5 +12,6 @@ func NewOption() *Option {
 		blame:    false,
 		remote:   false,
 		showHelp: false,
+		html:     false,
 	}
 }

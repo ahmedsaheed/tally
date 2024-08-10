@@ -2,17 +2,19 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	"github.com/gookit/color"
+	"github.com/charmbracelet/glamour"
 )
 
-//go:embed help.txt
+//go:embed help.md
 var helpText string
 
 func Tally(args []string) {
@@ -23,8 +25,11 @@ func Tally(args []string) {
 	}
 
 	if option.showHelp {
-		fmt.Println(color.HEX("#00FFFF", false).Sprint("Tally 0.1.0"))
-		fmt.Println(helpText)
+		formattedHelp, err := glamour.Render(helpText, "dark")
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+		fmt.Println(formattedHelp)
 		return
 	}
 
@@ -37,39 +42,58 @@ func Tally(args []string) {
 
 func parseArgs(args []string) (string, Option, error) {
 	argsLength := len(args)
-	if argsLength < 1 || argsLength > 3 {
-		return "", Option{}, fmt.Errorf("usage: tally <directory|repo> [--blame | --remote]")
-	}
-	root, option := resolveRootDirectoryFromArgs(args), *NewOption()
-
-	if argsLength == 2 && args[1] == "--help" || argsLength == 3 && args[2] == "--help" {
-		option.showHelp = true
-		return "", option, nil
+	if argsLength < 1 || argsLength > 4 {
+		return "", Option{}, fmt.Errorf("usage: tally <directory|repo> [--blame | --remote | --html | --help]")
 	}
 
-	if argsLength == 3 && args[2] == "--remote" {
+	root := resolveRootDirectoryFromArgs(args)
+	option := *NewOption()
+
+	for _, arg := range args[1:] {
+		if arg == "--help" || arg == "-h" {
+			option.showHelp = true
+			return "", option, nil
+		}
+	}
+
+	if argsLength >= 3 && (contains(args[1:], "--remote") || contains(args[1:], "-r")) {
 		option.remote = true
-		return args[1], option, nil
 	}
-	if !isPathOk(root) {
-		return "", Option{}, fmt.Errorf("error: invalid path")
+	if argsLength >= 3 && contains(args[1:], "--html") {
+		option.html = true
 	}
-	if argsLength == 3 && args[2] == "--blame" || argsLength == 2 && args[1] == "--blame" {
+	if argsLength >= 3 && (contains(args[1:], "--blame") || contains(args[1:], "-b")) {
 		option.blame = true
 	}
+
 	return root, option, nil
+}
+
+// Helper function to check if a flag is in the arguments
+func contains(args []string, flag string) bool {
+	for _, arg := range args {
+		if arg == flag {
+			return true
+		}
+	}
+	return false
 }
 
 func processLocalDirectory(root string, option Option) {
 	if !isPathOk(root) {
 		return
 	}
+	// rootBase := filepath.Base(root)
 	languages, err := TallyDirectory(root)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
-	MinimalDisplay(languages, option)
+	if option.html {
+		HtmlDisplay(root, languages, option)
+		return
+	}
+	Display(languages, option)
 }
 
 func processRemoteRepo(repoName string, option Option) {
@@ -79,7 +103,32 @@ func processRemoteRepo(repoName string, option Option) {
 		return
 	}
 	languages := generateLangArrayFromLocByLangs(loc)
-	MinimalDisplay(languages, option)
+
+	if option.html {
+		HtmlDisplay(repoName, languages, option)
+		return
+	}
+
+	Display(languages, option)
+}
+
+func countLine(r io.Reader) (int, error) {
+	buf := make([]byte, 32*1024)
+	count := 0
+	lineSep := []byte{'\n'}
+
+	for {
+		c, err := r.Read(buf)
+		count += bytes.Count(buf[:c], lineSep)
+
+		switch {
+		case err == io.EOF:
+			return count, nil
+
+		case err != nil:
+			return count, err
+		}
+	}
 }
 
 func Scan(path string) (int, error) {
@@ -90,21 +139,7 @@ func Scan(path string) (int, error) {
 	defer file.Close()
 
 	reader := bufio.NewReader(file)
-	lineCount := 0
-	for {
-		_, err := reader.ReadString('\n')
-		if err != nil {
-			if err == os.ErrClosed {
-				break
-			}
-			if err != nil {
-				return lineCount, nil
-			}
-		}
-		lineCount++
-	}
-
-	return lineCount, nil
+	return countLine(reader)
 }
 
 type RemoteResponse struct {
@@ -144,10 +179,9 @@ func generateLangArrayFromLocByLangs(locByLangs map[string]int) []Language {
 
 	}
 	return sortByTotalLines(langs)
-
 }
 
-func countUp(lang Language, root string) (Language, error) {
+func countLanguageInDir(lang Language, root string) (Language, error) {
 	totalLine := 0
 	fileCount := 0
 	filesInfo := []os.FileInfo{}
@@ -182,7 +216,7 @@ func countUp(lang Language, root string) (Language, error) {
 func TallyDirectory(root string) ([]Language, error) {
 	recognisedLanguages := GetAllLanguagesInDir(root)
 	for _, language := range recognisedLanguages {
-		lang, err := countUp(language, root)
+		lang, err := countLanguageInDir(language, root)
 		if err != nil {
 			return recognisedLanguages, err
 		}

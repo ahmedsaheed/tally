@@ -1,13 +1,22 @@
 package main
 
 import (
+	"bytes"
+	_ "embed"
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
+	"time"
 
 	"github.com/gookit/color"
 	"golang.org/x/crypto/ssh/terminal"
 )
+
+//go:embed styles.css
+var css string
 
 func minimalColorise(langColor string) color.RGBColor {
 	return color.HEX(langColor)
@@ -50,7 +59,7 @@ func generateBar(summaries []Language, width int) {
 	}
 }
 
-func MinimalDisplay(langs []Language, opts Option) {
+func Display(langs []Language, opts Option) {
 	width, _, err := terminal.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
 		width = 80
@@ -78,4 +87,92 @@ func MinimalDisplay(langs []Language, opts Option) {
 		}
 	}
 	generateBar(langs, width)
+}
+
+func HtmlDisplay(root string, langs []Language, opts Option) {
+
+	var output bytes.Buffer
+	openedInBrowser := false
+	root = map[bool]string{true: root, false: filepath.Base(root)}[opts.html]
+	output.WriteString("<!doctype html>\n")
+	output.WriteString(fmt.Sprintf("<html>\n<head>\n<title>Tally - %s</title>\n<style>\n%s</style>\n</head>\n \n", root, css))
+	output.WriteString("<body>\n\n")
+
+	var totalLines int
+	for _, lang := range langs {
+		totalLines += lang.TotalCount
+	}
+	var remainingLines = totalLines
+	output.WriteString("<div aria-hidden class='bar'>")
+	for _, lang := range langs {
+		remainingLines -= lang.TotalCount
+		output.WriteString(fmt.Sprintf("<div aria-hidden title=%s style=\"background-color:%s; flex-grow: %d\"></div>", lang.Name, lang.getColor(), lang.TotalCount))
+	}
+
+	if remainingLines > 0 {
+		output.WriteString(fmt.Sprintf("<div aria-hidden title=\"Other languages\" style=\"background-color: gray; flex-grow: %d\"></div>", remainingLines))
+	}
+	output.WriteString("</div>")
+	output.WriteString("<table>\n<colgroup><col /><col width=\"15%\" /><col width=\"15%\" /></colgroup>\n <th>Language</th><th>Lines</th><th>File Count</th>")
+
+	for _, lang := range langs {
+		output.WriteString(fmt.Sprintf("<tr><td><span style=\"color: %s\">●</span>&nbsp;%s</td><td>%d</td><td>%d</td></tr>",
+			lang.getColor(), lang.Name, lang.TotalCount, lang.FileCount))
+	}
+
+	output.WriteString("</table>\n</body>\n</html>")
+	tempFile := temp(output.String())
+	if tempFile == nil {
+		return
+	}
+
+	if err := openBrowser(tempFile.Name()); err != nil {
+		fmt.Println("Error opening browser:", err)
+		defer os.Remove(tempFile.Name())
+	} else {
+		openedInBrowser = true
+	}
+
+	if openedInBrowser {
+		defer func() {
+			time.Sleep(10 * time.Second)
+			os.Remove(tempFile.Name())
+			fmt.Println("Deleted temporary file:", tempFile.Name())
+		}()
+	}
+}
+
+func temp(in string) *os.File {
+	tempFile, err := os.CreateTemp("", "tally-*.html")
+	if err != nil {
+		fmt.Println("Error creating temporary file:", err)
+		return nil
+	}
+	defer tempFile.Close()
+
+	_, err = tempFile.WriteString(in)
+	if err != nil {
+		fmt.Println("Error writing to temporary file:", err)
+		return nil
+	}
+
+	return tempFile
+}
+
+func openBrowser(filePath string) error {
+	var cmd string
+	var args []string
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "rundll32"
+		args = []string{"url.dll,FileProtocolHandler", filePath}
+	case "darwin":
+		cmd = "open"
+		args = []string{filePath}
+	default:
+		cmd = "xdg-open"
+		args = []string{filePath}
+	}
+
+	return exec.Command(cmd, args...).Start()
 }
