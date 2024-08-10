@@ -41,7 +41,7 @@ brews:
   - tap:
       owner: ahmedsaheed 
       name: tally
-    url_template: "http://github.com/ahmedshaeed/tally/releases/{{ .Tag }}/{{ .ArtifactName }}"
+    url_template: "http://github.com/ahmedsaheed/tally/releases/{{ .Tag }}/{{ .ArtifactName }}"
     folder: Formula
     homepage: "https://github.com/ahmedsaheed/tally"
     description: "Tally up source files in a directory"
